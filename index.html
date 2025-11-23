@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIG WASH AS - 셀프 세차장 전문 AS 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 헤더 브랜딩 섹션 */
+        .brand-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-hero {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 서비스 소개 */
+        .intro-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .intro-section h1 {
+            color: #1e3c72;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .intro-section p {
+            font-size: 1.2em;
+            line-height: 1.8;
+            color: #555;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* 서비스 선택 카드 */
+        .service-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .service-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .service-card h2 {
+            color: #1e3c72;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .service-card p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .service-card .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .service-card .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 고객 카드 강조 */
+        .service-card.customer {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .service-card.customer h2,
+        .service-card.customer p {
+            color: white;
+        }
+
+        .service-card.customer .btn {
+            background: white;
+            color: #f5576c;
+        }
+
+        /* 기사 카드 강조 */
+        .service-card.technician {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .service-card.technician h2,
+        .service-card.technician p {
+            color: white;
+        }
+
+        .service-card.technician .btn {
+            background: white;
+            color: #00f2fe;
+        }
+
+        /* 특징 섹션 */
+        .features {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .features h2 {
+            color: #1e3c72;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-item .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .feature-item h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .feature-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 푸터 */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .intro-section h1 {
+                font-size: 1.8em;
+            }
+
+            .intro-section p {
+                font-size: 1em;
+            }
+
+            .service-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-hero {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 브랜드 헤더 -->
+    <div class="brand-header">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 300'%3E%3Crect fill='%231e3c72' width='1024' height='300'/%3E%3Ctext x='512' y='150' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3EBIG WASH AS%3C/text%3E%3Ctext x='512' y='220' font-family='Arial, sans-serif' font-size='24' fill='%23ff6b35' text-anchor='middle'%3E셀프 세차장 전문 AS 서비스%3C/text%3E%3C/svg%3E" alt="BIG WASH AS" class="brand-hero">
+    </div>
+
+    <div class="container">
+        <!-- 서비스 소개 -->
+        <div class="intro-section">
+            <h1>🔧 셀프 세차장 장비 전문 AS 서비스</h1>
+            <p>
+                <span class="highlight">BIG WASH AS</span>는 셀프 세차장 장비 고장 시 신속하게 출동하는 전문 AS 서비스 업체입니다.
+            </p>
+            <p>
+                거품기, 세차기, 진공청소기 등 세차장 장비에 문제가 생기셨나요?<br>
+                실시간 채팅으로 빠르게 상담하고, 원하는 시간에 전문 기사가 출동합니다.
+            </p>
+        </div>
+
+        <!-- 서비스 선택 -->
+        <div class="service-cards">
+            <!-- 세차장 관리자 카드 -->
+            <a href="customer-as-request.html" class="service-card customer">
+                <div class="service-icon">🏢</div>
+                <h2>세차장 관리자</h2>
+                <p>
+                    세차장 장비에 문제가 발생하셨나요?<br>
+                    지금 바로 AS 요청하세요!
+                </p>
+                <div class="btn">AS 요청하기</div>
+            </a>
+
+            <!-- 기사 카드 -->
+            <a href="technician-app.html" class="service-card technician">
+                <div class="service-icon">👷</div>
+                <h2>AS 기사</h2>
+                <p>
+                    출동 요청을 확인하고<br>
+                    일정을 관리하세요
+                </p>
+                <div class="btn">기사 대시보드</div>
+            </a>
+
+            <!-- 관리자 카드 -->
+            <a href="staff-dashboard.html" class="service-card">
+                <div class="service-icon">📊</div>
+                <h2>시스템 관리자</h2>
+                <p>
+                    전체 AS 현황 모니터링 및<br>
+                    통계 분석
+                </p>
+                <div class="btn">관리자 페이지</div>
+            </a>
+        </div>
+
+        <!-- 주요 특징 -->
+        <div class="features">
+            <h2>🌟 왜 BIG WASH AS인가요?</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="icon">⚡</div>
+                    <h3>빠른 대응</h3>
+                    <p>실시간 채팅으로 즉시 상담하고 신속하게 출동합니다</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">💬</div>
+                    <h3>투명한 소통</h3>
+                    <p>실시간 채팅으로 진행 상황을 투명하게 공유합니다</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🗓️</div>
+                    <h3>유연한 스케줄</h3>
+                    <p>세차장 영업시간에 맞춰 출동 시간을 조정합니다</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">📝</div>
+                    <h3>체계적 관리</h3>
+                    <p>장비별 AS 히스토리를 기록하여 예방 정비가 가능합니다</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 BIG WASH AS. All rights reserved.</p>
+        <p>셀프 세차장 전문 AS 서비스 | 문의: <a href="mailto:bigwash2025@gmail.com">bigwash2025@gmail.com</a></p>
+    </footer>
+
+    <script>
+        // 카드 클릭 애니메이션
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // 링크는 그대로 동작하도록
+            });
+        });
+
+        // 페이지 로드 애니메이션
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.service-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
