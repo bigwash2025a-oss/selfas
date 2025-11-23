@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 기사님과 채팅</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .header .status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+
+        /* 채팅 영역 */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .message.customer {
+            justify-content: flex-end;
+        }
+
+        .message.technician {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.customer .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.technician .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-sender {
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            padding: 0 5px;
+            color: #666;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        .message-image {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        /* 시스템 메시지 */
+        .system-message {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .system-message-badge {
+            background: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* 입력 영역 */
+        .input-area {
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-label {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #667eea;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #f0f0f0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        #messageInput {
+            flex: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 파일 미리보기 */
+        .file-preview {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-preview.active {
+            display: flex;
+        }
+
+        .file-preview img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 5px;
+        }
+
+        .file-preview-info {
+            flex: 1;
+        }
+
+        .file-preview-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* 로딩 */
+        .typing-indicator {
+            display: none;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #999;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        /* 완료 확인 버튼 */
+        .completion-area {
+            background: #fff3cd;
+            padding: 15px;
+            text-align: center;
+            border-top: 2px solid #ffc107;
+            display: none;
+        }
+
+        .completion-area.active {
+            display: block;
+        }
+
+        .completion-area button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .completion-area button.secondary {
+            background: #6c757d;
+        }
+
+        .completion-area button:hover {
+            opacity: 0.9;
+        }
+
+        /* 에스컬레이션 버튼 영역 */
+        .escalation-area {
+            background: white;
+            padding: 15px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .escalation-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .escalation-btn.phone {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .escalation-btn.phone:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .escalation-btn.visit {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .escalation-btn.visit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .escalation-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>💬 기사님과 1:1 채팅</h1>
+                <div class="status">
+                    <span id="statusText">연결 중...</span>
+                    <span class="status-badge" id="statusBadge">대기중</span>
+                </div>
+            </div>
+            <button onclick="exitChat()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                ← 나가기
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="system-message">
+            <div class="system-message-badge">
+                채팅방이 생성되었습니다
+            </div>
+        </div>
+    </div>
+
+    <!-- 에스컬레이션: 전화/출동 -->
+    <div class="escalation-area" id="escalationArea">
+        <button class="escalation-btn phone" onclick="callTechnician()">
+            <span style="font-size: 1.5rem;">📞</span>
+            <span>전화 상담<br><small style="font-size: 0.85rem;">010-3004-8047</small></span>
+        </button>
+        <button class="escalation-btn visit" onclick="requestVisit()">
+            <span style="font-size: 1.5rem;">🚗</span>
+            <span>출동 요청<br><small style="font-size: 0.85rem;">최후 수단</small></span>
+        </button>
+    </div>
+
+    <div class="completion-area" id="completionArea">
+        <p style="margin-bottom: 10px; color: #856404;"><strong>수리가 완료되었나요?</strong></p>
+        <button onclick="confirmCompletion()">✅ 확인 완료</button>
+        <button class="secondary" onclick="reportIssue()">⚠️ 재문제 신고</button>
+    </div>
+
+    <div class="file-preview" id="filePreview">
+        <img id="previewImage" src="" alt="Preview">
+        <div class="file-preview-info">
+            <div id="fileName"></div>
+            <div style="font-size: 0.85rem; color: #666;" id="fileSize"></div>
+        </div>
+        <button class="file-preview-remove" onclick="cancelFile()">취소</button>
+    </div>
+
+    <div class="input-area">
+        <label for="fileInput" class="file-input-label">📷</label>
+        <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileSelect(event)">
+
+        <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)">
+
+        <button class="send-button" onclick="sendMessage()">
+            ➤
+        </button>
+    </div>
+
+    <script>
+        // 자동으로 서버 주소 감지 (모바일/PC 모두 지원)
+        const hostname = window.location.hostname || 'localhost';
+        const API_URL = `http://${hostname}:53001/api`;
+        const WS_URL = `ws://${hostname}:53001/ws`;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestId = urlParams.get('request_id');
+        const customerName = urlParams.get('name') || '고객';
+
+        let ws = null;
+        let selectedFile = null;
+        let currentRequest = null;
+
+        // WebSocket 연결
+        function connectWebSocket() {
+            ws = new WebSocket(`${WS_URL}/${requestId}`);
+
+            ws.onopen = () => {
+                console.log('WebSocket 연결됨');
+                document.getElementById('statusText').textContent = '기사님 대기 중';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+
+                if (data.type === 'new_message') {
+                    displayMessage(data.data);
+
+                    // 새 메시지를 로컬에 추가 저장
+                    const localMessages = loadMessagesFromLocal();
+                    const exists = localMessages.some(msg => msg.id === data.data.id);
+                    if (!exists) {
+                        localMessages.push(data.data);
+                        saveMessagesToLocal(localMessages);
+                        console.log('💾 메시지 로컬 저장 완료');
+                    }
+                } else if (data.type === 'request_updated') {
+                    updateRequestStatus(data.data);
+                } else if (data.type === 'schedule_proposed') {
+                    // 스케줄 제안이 왔을 때
+                    console.log('📅 스케줄 제안 수신:', data.data);
+                    loadMessages(); // 메시지 다시 로드하여 스케줄 제안 표시
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket 에러:', error);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket 연결 종료');
+                setTimeout(connectWebSocket, 3000); // 재연결 시도
+            };
+        }
+
+        // localStorage 키
+        const STORAGE_KEY = `chat_messages_${requestId}`;
+
+        // 메시지를 localStorage에 저장
+        function saveMessagesToLocal(messages) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+            } catch (e) {
+                console.log('localStorage 저장 실패:', e);
+            }
+        }
+
+        // localStorage에서 메시지 로드
+        function loadMessagesFromLocal() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                console.log('localStorage 로드 실패:', e);
+                return [];
+            }
+        }
+
+        // 초기 데이터 로드
+        async function loadInitialData() {
+            try {
+                // 먼저 로컬 저장된 메시지 로드
+                const localMessages = loadMessagesFromLocal();
+                const displayedIds = new Set();
+
+                if (localMessages.length > 0) {
+                    console.log(`📦 로컬에서 ${localMessages.length}개 메시지 복원`);
+                    localMessages.forEach(msg => {
+                        displayMessage(msg, false);
+                        displayedIds.add(msg.id);
+                    });
+                }
+
+                // 서버에서 최신 데이터 가져오기
+                const response = await fetch(`${API_URL}/as-requests/${requestId}`);
+                currentRequest = await response.json();
+
+                updateRequestStatus(currentRequest);
+
+                // 서버의 새 메시지만 추가 표시
+                if (currentRequest.messages) {
+                    const newMessages = currentRequest.messages.filter(msg => !displayedIds.has(msg.id));
+
+                    if (newMessages.length > 0) {
+                        console.log(`🆕 서버에서 ${newMessages.length}개 새 메시지 로드`);
+                        newMessages.forEach(msg => {
+                            displayMessage(msg, false);
+                        });
+                    }
+
+                    // 전체 메시지를 로컬에 저장
+                    saveMessagesToLocal(currentRequest.messages);
+                }
+
+                scrollToBottom();
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+                // 서버 연결 실패 시 로컬 메시지만 표시
+                console.log('📦 오프라인 모드: 로컬 저장된 메시지만 표시');
+            }
+        }
+
+        // 상태 업데이트
+        function updateRequestStatus(request) {
+            currentRequest = request;
+            const statusText = document.getElementById('statusText');
+            const statusBadge = document.getElementById('statusBadge');
+
+            const statusMap = {
+                'pending': { text: '기사님 배정 대기 중', badge: '대기중', color: '#ffc107' },
+                'assigned': { text: '기사님이 배정되었습니다', badge: '배정됨', color: '#17a2b8' },
+                'in_progress': { text: '수리 진행 중', badge: '진행중', color: '#007bff' },
+                'needs_visit': { text: '🚗 기사님 출동 중', badge: '출동중', color: '#e74c3c' },
+                'completed': { text: '수리 완료', badge: '완료', color: '#28a745' },
+                'confirmed': { text: '확인 완료', badge: '확인됨', color: '#6c757d' }
+            };
+
+            const status = statusMap[request.status] || statusMap['pending'];
+            statusText.textContent = status.text;
+            statusBadge.textContent = status.badge;
+            statusBadge.style.background = status.color;
+
+            // 수리 완료 시 확인 버튼 표시
+            if (request.status === 'completed') {
+                document.getElementById('completionArea').classList.add('active');
+            } else {
+                document.getElementById('completionArea').classList.remove('active');
+            }
+        }
+
+        // 메시지 표시
+        function displayMessage(message, animate = true) {
+            const chatContainer = document.getElementById('chatContainer');
+
+            // 중복 메시지 방지
+            if (document.querySelector(`[data-message-id="${message.id}"]`)) {
+                return;
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.sender_type}`;
+            messageDiv.setAttribute('data-message-id', message.id);
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+
+            // 발신자 이름
+            if (message.sender_type === 'technician') {
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = message.sender_name;
+                messageDiv.appendChild(senderDiv);
+            }
+
+            // 메시지 내용
+            if (message.message_type === 'image' && message.file_url) {
+                const img = document.createElement('img');
+                img.src = `http://${hostname}:53001${message.file_url}`;
+                img.className = 'message-image';
+                img.onclick = () => window.open(img.src, '_blank');
+                bubbleDiv.appendChild(img);
+
+                if (message.content) {
+                    const textDiv = document.createElement('div');
+                    textDiv.textContent = message.content;
+                    bubbleDiv.appendChild(textDiv);
+                }
+            } else {
+                // 스케줄 제안 메시지 감지
+                if (message.sender_type === 'technician' && message.content.includes('📅 출동 시간 제안드립니다')) {
+                    // 스케줄 제안 카드 UI
+                    bubbleDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    bubbleDiv.style.color = 'white';
+                    bubbleDiv.style.padding = '20px';
+                    bubbleDiv.style.borderRadius = '15px';
+                    bubbleDiv.innerHTML = message.content.replace(/\n/g, '<br>');
+
+                    // 버튼 컨테이너 (3개: 수락, 변경요청, 거절)
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.marginTop = '15px';
+                    buttonContainer.style.display = 'grid';
+                    buttonContainer.style.gridTemplateColumns = '1fr 1fr';
+                    buttonContainer.style.gap = '10px';
+
+                    const acceptBtn = document.createElement('button');
+                    acceptBtn.innerHTML = '✅ 수락';
+                    acceptBtn.style.gridColumn = '1 / -1';
+                    acceptBtn.style.padding = '15px';
+                    acceptBtn.style.background = '#27ae60';
+                    acceptBtn.style.color = 'white';
+                    acceptBtn.style.border = 'none';
+                    acceptBtn.style.borderRadius = '10px';
+                    acceptBtn.style.fontWeight = 'bold';
+                    acceptBtn.style.fontSize = '1.05rem';
+                    acceptBtn.style.cursor = 'pointer';
+                    acceptBtn.style.transition = 'all 0.2s';
+                    acceptBtn.onmouseover = () => acceptBtn.style.background = '#229954';
+                    acceptBtn.onmouseout = () => acceptBtn.style.background = '#27ae60';
+                    acceptBtn.onclick = () => acceptSchedule(message.id);
+
+                    const changeBtn = document.createElement('button');
+                    changeBtn.innerHTML = '🔄 변경요청';
+                    changeBtn.style.padding = '12px';
+                    changeBtn.style.background = '#f39c12';
+                    changeBtn.style.color = 'white';
+                    changeBtn.style.border = 'none';
+                    changeBtn.style.borderRadius = '10px';
+                    changeBtn.style.fontWeight = 'bold';
+                    changeBtn.style.cursor = 'pointer';
+                    changeBtn.style.transition = 'all 0.2s';
+                    changeBtn.onmouseover = () => changeBtn.style.background = '#d68910';
+                    changeBtn.onmouseout = () => changeBtn.style.background = '#f39c12';
+                    changeBtn.onclick = () => requestScheduleChange(message.id);
+
+                    const rejectBtn = document.createElement('button');
+                    rejectBtn.innerHTML = '❌ 거절';
+                    rejectBtn.style.padding = '12px';
+                    rejectBtn.style.background = '#95a5a6';
+                    rejectBtn.style.color = 'white';
+                    rejectBtn.style.border = 'none';
+                    rejectBtn.style.borderRadius = '10px';
+                    rejectBtn.style.fontWeight = 'bold';
+                    rejectBtn.style.cursor = 'pointer';
+                    rejectBtn.style.transition = 'all 0.2s';
+                    rejectBtn.onmouseover = () => rejectBtn.style.background = '#7f8c8d';
+                    rejectBtn.onmouseout = () => rejectBtn.style.background = '#95a5a6';
+                    rejectBtn.onclick = () => rejectSchedule(message.id);
+
+                    buttonContainer.appendChild(acceptBtn);
+                    buttonContainer.appendChild(changeBtn);
+                    buttonContainer.appendChild(rejectBtn);
+                    bubbleDiv.appendChild(buttonContainer);
+                } else {
+                    bubbleDiv.textContent = message.content;
+                }
+            }
+
+            // 시간
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            const time = new Date(message.created_at);
+            timeDiv.textContent = time.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            bubbleDiv.appendChild(timeDiv);
+
+            messageDiv.appendChild(bubbleDiv);
+            chatContainer.appendChild(messageDiv);
+
+            if (animate) {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    messageDiv.style.transition = 'all 0.3s';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                }, 10);
+            }
+
+            scrollToBottom();
+        }
+
+        // 메시지 전송
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message && !selectedFile) return;
+
+            let fileUrl = null;
+
+            // 파일 업로드
+            if (selectedFile) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    formData.append('request_id', requestId);
+                    formData.append('uploaded_by', customerName);
+
+                    const response = await fetch(`${API_URL}/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    fileUrl = data.file_url;
+                } catch (error) {
+                    console.error('파일 업로드 실패:', error);
+                    alert('파일 업로드에 실패했습니다.');
+                    return;
+                }
+            }
+
+            // 메시지 전송
+            try {
+                const response = await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: fileUrl ? 'image' : 'text',
+                        content: message || '사진',
+                        file_url: fileUrl
+                    })
+                });
+
+                const newMessage = await response.json();
+
+                // 보낸 메시지를 로컬에 저장
+                const localMessages = loadMessagesFromLocal();
+                localMessages.push(newMessage);
+                saveMessagesToLocal(localMessages);
+                console.log('💾 내 메시지 로컬 저장 완료');
+
+                input.value = '';
+                cancelFile();
+
+            } catch (error) {
+                console.error('메시지 전송 실패:', error);
+            }
+        }
+
+        // 파일 선택
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+
+            // 미리보기
+            const preview = document.getElementById('filePreview');
+            const previewImage = document.getElementById('previewImage');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            preview.classList.add('active');
+        }
+
+        function cancelFile() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('filePreview').classList.remove('active');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // 엔터키 처리
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // 스크롤
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 완료 확인
+        async function confirmCompletion() {
+            if (!confirm('수리가 정상적으로 완료되었나요?')) return;
+
+            try {
+                await fetch(`${API_URL}/as-requests/${requestId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'confirmed'
+                    })
+                });
+
+                alert('감사합니다! 포인트 1,000원이 지급되었습니다. 🎉');
+                document.getElementById('completionArea').classList.remove('active');
+
+            } catch (error) {
+                console.error('완료 확인 실패:', error);
+            }
+        }
+
+        // 재문제 신고
+        async function reportIssue() {
+            const issue = prompt('어떤 문제가 있나요?');
+            if (!issue) return;
+
+            try {
+                await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: 'text',
+                        content: `⚠️ 재문제 신고: ${issue}`
+                    })
+                });
+
+                await fetch(`${API_URL}/as-requests/${requestId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'in_progress'
+                    })
+                });
+
+            } catch (error) {
+                console.error('재문제 신고 실패:', error);
+            }
+        }
+
+        // 전화 상담 (에스컬레이션 2단계)
+        function callTechnician() {
+            if (confirm('기사님과 직접 통화하시겠습니까?\n\n010-3004-8047로 연결됩니다.')) {
+                // 채팅에 전화 시도 기록
+                fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: 'text',
+                        content: '📞 고객님이 전화 상담을 요청하셨습니다.'
+                    })
+                });
+
+                // 전화 연결
+                window.location.href = 'tel:010-3004-8047';
+            }
+        }
+
+        // 출동 요청 (에스컬레이션 3단계)
+        async function requestVisit() {
+            if (!confirm('출동 서비스를 요청하시겠습니까?\n\n기사님이 현장으로 방문합니다.\n추가 비용이 발생할 수 있습니다.')) {
+                return;
+            }
+
+            try {
+                // 상태를 needs_visit으로 변경
+                await fetch(`${API_URL}/as-requests/${requestId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'needs_visit',
+                        priority: 'urgent'
+                    })
+                });
+
+                // 채팅에 출동 요청 기록
+                await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: 'text',
+                        content: '🚗 고객님이 출동 서비스를 요청하셨습니다. (긴급)'
+                    })
+                });
+
+                alert('✅ 출동 요청이 접수되었습니다!\n\n기사님이 곧 방문 일정을 제안할 예정입니다.\n제안을 받으시면 수락/거절 버튼이 표시됩니다.');
+
+            } catch (error) {
+                console.error('출동 요청 실패:', error);
+                alert('출동 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
+        }
+
+        // 나가기 버튼
+        function exitChat() {
+            if (confirm('채팅방을 나가시겠습니까?\n메인 페이지로 이동합니다.')) {
+                // WebSocket 연결 종료
+                if (ws) {
+                    ws.close();
+                }
+                // 메인 페이지로 이동
+                window.location.href = 'index.html';
+            }
+        }
+
+        // ==================== 스케줄 수락/거절 ====================
+
+        // 스케줄 수락
+        async function acceptSchedule(messageId) {
+            try {
+                // 현재 요청의 스케줄 조회
+                const schedulesResponse = await fetch(`${API_URL}/visit-schedules/${requestId}`);
+                const schedules = await schedulesResponse.json();
+
+                // 가장 최근 제안된 스케줄 찾기
+                const latestSchedule = schedules.find(s => s.status === 'proposed');
+
+                if (!latestSchedule) {
+                    alert('스케줄 제안을 찾을 수 없습니다.');
+                    return;
+                }
+
+                // 스케줄 수락 처리
+                await fetch(`${API_URL}/visit-schedules/${latestSchedule.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'accepted' })
+                });
+
+                // 수락 메시지 전송
+                await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: 'text',
+                        content: '✅ 제안하신 시간에 방문 가능합니다. 감사합니다!'
+                    })
+                });
+
+                alert('✅ 스케줄이 확정되었습니다!\n기사님이 약속된 시간에 방문합니다.');
+                loadMessages(); // 메시지 다시 로드
+
+            } catch (error) {
+                console.error('스케줄 수락 실패:', error);
+                alert('스케줄 수락 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 스케줄 변경 요청 (새로 추가)
+        async function requestScheduleChange(messageId) {
+            // 날짜/시간 선택 모달 생성
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.background = 'rgba(0,0,0,0.7)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '10000';
+
+            const modalContent = document.createElement('div');
+            modalContent.style.background = 'white';
+            modalContent.style.padding = '30px';
+            modalContent.style.borderRadius = '20px';
+            modalContent.style.maxWidth = '400px';
+            modalContent.style.width = '90%';
+            modalContent.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #2c3e50;">🔄 희망 날짜/시간 선택</h3>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #34495e;">날짜</label>
+                    <input type="date" id="changeDate" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;" min="${new Date().toISOString().split('T')[0]}">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #34495e;">시간</label>
+                    <select id="changeTime" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                        <option value="09:00">오전 9시</option>
+                        <option value="10:00">오전 10시</option>
+                        <option value="11:00">오전 11시</option>
+                        <option value="12:00">낮 12시</option>
+                        <option value="13:00">오후 1시</option>
+                        <option value="14:00">오후 2시</option>
+                        <option value="15:00">오후 3시</option>
+                        <option value="16:00">오후 4시</option>
+                        <option value="17:00">오후 5시</option>
+                        <option value="18:00">오후 6시</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #34495e;">추가 요청사항 (선택)</label>
+                    <textarea id="changeNote" placeholder="예: 점심시간 피해주세요" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95rem; resize: vertical; min-height: 60px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="confirmChange" style="flex: 1; padding: 15px; background: #f39c12; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer;">확인</button>
+                    <button id="cancelChange" style="flex: 1; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer;">취소</button>
+                </div>
+            `;
+
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            // 오늘 날짜를 기본값으로 설정
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+
+            // 확인 버튼
+            document.getElementById('confirmChange').onclick = async () => {
+                const date = document.getElementById('changeDate').value;
+                const time = document.getElementById('changeTime').value;
+                const note = document.getElementById('changeNote').value;
+
+                if (!date) {
+                    alert('날짜를 선택해주세요.');
+                    return;
+                }
+
+                try {
+                    // 현재 요청의 스케줄 조회
+                    const schedulesResponse = await fetch(`${API_URL}/visit-schedules/${requestId}`);
+                    const schedules = await schedulesResponse.json();
+                    const latestSchedule = schedules.find(s => s.status === 'proposed');
+
+                    if (latestSchedule) {
+                        // 스케줄 거절 처리
+                        await fetch(`${API_URL}/visit-schedules/${latestSchedule.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'rejected' })
+                        });
+                    }
+
+                    // 변경 요청 메시지 전송
+                    const formattedDate = new Date(date).toLocaleDateString('ko-KR', {
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'short'
+                    });
+
+                    const formattedTime = time.replace(/(\d{2}):(\d{2})/, (_, h, m) => {
+                        const hour = parseInt(h);
+                        const period = hour < 12 ? '오전' : '오후';
+                        const displayHour = hour > 12 ? hour - 12 : hour;
+                        return `${period} ${displayHour}시`;
+                    });
+
+                    let content = `🔄 다른 시간을 희망합니다.\n\n📅 희망 일시: ${formattedDate} ${formattedTime}`;
+                    if (note) {
+                        content += `\n📝 요청사항: ${note}`;
+                    }
+
+                    await fetch(`${API_URL}/chat-messages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            request_id: requestId,
+                            sender_type: 'customer',
+                            sender_name: customerName,
+                            message_type: 'text',
+                            content: content
+                        })
+                    });
+
+                    modal.remove();
+                    alert('✅ 변경 요청이 전달되었습니다!\n기사님이 확인 후 다시 제안드릴 예정입니다.');
+                    loadMessages();
+
+                } catch (error) {
+                    console.error('스케줄 변경 요청 실패:', error);
+                    alert('변경 요청 중 오류가 발생했습니다.');
+                }
+            };
+
+            // 취소 버튼
+            document.getElementById('cancelChange').onclick = () => {
+                modal.remove();
+            };
+
+            // 배경 클릭 시 닫기
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+        }
+
+        // 스케줄 거절
+        async function rejectSchedule(messageId) {
+            if (!confirm('출동 자체를 거절하시겠습니까?\n\n다른 시간을 원하시면 "변경요청" 버튼을 눌러주세요.')) {
+                return;
+            }
+
+            try {
+                // 현재 요청의 스케줄 조회
+                const schedulesResponse = await fetch(`${API_URL}/visit-schedules/${requestId}`);
+                const schedules = await schedulesResponse.json();
+                const latestSchedule = schedules.find(s => s.status === 'proposed');
+
+                if (latestSchedule) {
+                    // 스케줄 거절 처리
+                    await fetch(`${API_URL}/visit-schedules/${latestSchedule.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'rejected' })
+                    });
+                }
+
+                // 거절 메시지 전송
+                await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        sender_type: 'customer',
+                        sender_name: customerName,
+                        message_type: 'text',
+                        content: `❌ 출동이 필요 없습니다. 거절합니다.`
+                    })
+                });
+
+                alert('거절 의사가 전달되었습니다.');
+                loadMessages();
+
+            } catch (error) {
+                console.error('스케줄 거절 실패:', error);
+                alert('스케줄 거절 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 초기화
+        connectWebSocket();
+        loadInitialData();
+    </script>
+
+    <!-- 🔧 채팅 위젯 로드 (미니 버전) - 채팅방에서는 숨김 -->
+    <script>
+    fetch('chat-widget.html')
+        .then(response => response.text())
+        .then(html => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // 스타일 추가
+            const styles = tempDiv.querySelectorAll('style');
+            styles.forEach(style => document.head.appendChild(style.cloneNode(true)));
+
+            // 최상위 요소만 추가 (중첩된 자식까지 자동 포함)
+            Array.from(tempDiv.children).forEach(child => {
+                if (child.tagName === 'BUTTON' || child.tagName === 'DIV') {
+                    document.body.appendChild(child.cloneNode(true));
+                }
+            });
+
+            // 스크립트 추가 (새로 생성해서 실행)
+            const scripts = tempDiv.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+            });
+
+            // 위젯 초기화 및 플로팅 버튼 숨기기 (채팅방에서는 불필요)
+            setTimeout(() => {
+                if (window.chatWidget) {
+                    window.chatWidget.init();
+                }
+                const btn = document.getElementById('chatFloatingBtn');
+                if (btn) {
+                    btn.style.display = 'none'; // 채팅방에서는 플로팅 버튼 숨김
+                }
+            }, 200);
+        })
+        .catch(err => console.log('채팅 위젯 로드 실패:', err));
+    </script>
+</body>
+</html>

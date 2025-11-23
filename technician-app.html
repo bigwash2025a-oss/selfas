@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 기사 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .technician-name {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* 탭 */
+        .tabs {
+            background: white;
+            display: flex;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab.active {
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .tab-badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        /* 컨텐츠 */
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* AS 요청 카드 */
+        .request-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .request-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .request-card.priority-high {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .request-card.priority-urgent {
+            border-left-color: #c0392b;
+            background: #ffe6e6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.95; }
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .request-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .request-time {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .request-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-status {
+            background: #3498db;
+            color: white;
+        }
+
+        .badge-priority {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge-urgent {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .request-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-icon {
+            font-size: 1.2rem;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* 채팅 영역 */
+        .chat-section {
+            display: none;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .chat-section.active {
+            display: flex;
+        }
+
+        .chat-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message.customer {
+            align-items: flex-end;
+        }
+
+        .chat-message.technician {
+            align-items: flex-start;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .chat-message.customer .chat-bubble {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .chat-message.technician .chat-bubble {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+        }
+
+        .chat-send {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        /* 모바일 */
+        @media (max-width: 768px) {
+            .chat-section {
+                width: 100%;
+            }
+
+            .request-info {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                justify-content: space-around;
+            }
+        }
+
+        /* 알림음 애니메이션 */
+        .new-request-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5);
+            z-index: 2000;
+            animation: slideIn 0.5s, fadeOut 0.5s 3.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(400px); }
+        }
+
+        /* 스케줄 모달 */
+        .schedule-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .schedule-modal.active {
+            display: flex;
+        }
+
+        .schedule-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .schedule-modal h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div>
+                <h1>🔧 기사 대시보드</h1>
+                <div class="technician-name">박기사님, 안녕하세요!</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.9rem;">오늘</div>
+                <div id="currentTime" style="font-size: 1.2rem; font-weight: bold;"></div>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="todayRequests">0</div>
+                <div class="stat-label">오늘 요청</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="pendingRequests">0</div>
+                <div class="stat-label">대기중</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completedToday">0</div>
+                <div class="stat-label">완료</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgResponseTime">-</div>
+                <div class="stat-label">평균 응답시간</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('pending')">
+            대기중 <span class="tab-badge" id="pendingBadge">0</span>
+        </div>
+        <div class="tab" onclick="switchTab('needs_visit')">
+            🚗 출동 요청 <span class="tab-badge" id="needsVisitBadge" style="background: #e74c3c;">0</span>
+        </div>
+        <div class="tab" onclick="switchTab('in_progress')">
+            진행중 <span class="tab-badge" id="inProgressBadge" style="background: #3498db;">0</span>
+        </div>
+        <div class="tab" onclick="switchTab('completed')">
+            완료 <span class="tab-badge" id="completedBadge" style="background: #27ae60;">0</span>
+        </div>
+        <div class="tab" onclick="switchTab('all')">
+            전체
+        </div>
+        <div class="tab" onclick="switchTab('logs')">
+            📊 로그 분석
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="pending" class="tab-content active">
+            <!-- 대기중 요청 -->
+        </div>
+        <div id="needs_visit" class="tab-content">
+            <!-- 출동 요청 -->
+        </div>
+        <div id="in_progress" class="tab-content">
+            <!-- 진행중 요청 -->
+        </div>
+        <div id="completed" class="tab-content">
+            <!-- 완료 요청 -->
+        </div>
+        <div id="all" class="tab-content">
+            <!-- 전체 요청 -->
+        </div>
+        <div id="logs" class="tab-content">
+            <!-- 실시간 시스템 로그 -->
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #2c3e50;">📊 실시간 시스템 로그</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <span id="logCount" style="background: #3498db; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold;">-</span>
+                        <button onclick="loadLogs()" class="btn btn-primary" style="padding: 8px 15px;">🔄 새로고침</button>
+                    </div>
+                </div>
+
+                <!-- 검색 및 필터 -->
+                <div class="request-card" style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="logSearchInput" placeholder="검색어 입력 (IP, 고객명, 전화번호 등)" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;" onkeypress="if(event.key==='Enter') searchLogs()">
+                        <button onclick="searchLogs()" class="btn btn-primary">🔍 검색</button>
+                        <button onclick="clearSearch()" class="btn btn-secondary">✕ 초기화</button>
+                        <select id="logLinesSelect" onchange="loadLogs()" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                            <option value="50">50줄</option>
+                            <option value="100" selected>100줄</option>
+                            <option value="200">200줄</option>
+                            <option value="500">500줄</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 로그 출력 영역 -->
+                <div class="request-card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #d4d4d4; padding: 20px; border-radius: 15px; max-height: 700px; overflow-y: auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <div id="logOutput" style="min-height: 100px;">
+                        <div style="text-align: center; padding: 40px; color: #95a5a6;">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
+                            로그를 불러오는 중...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 자동 새로고침 -->
+                <div style="margin-top: 15px; text-align: center;">
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="autoRefreshCheckbox" onchange="toggleAutoRefresh()" checked>
+                        <span style="margin-left: 5px; color: #7f8c8d;">5초마다 자동 새로고침</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스케줄 제안 모달 -->
+    <div class="schedule-modal" id="scheduleModal">
+        <div class="schedule-modal-content">
+            <h2>📅 출동 시간 제안</h2>
+
+            <div class="form-group">
+                <label>날짜</label>
+                <input type="date" id="scheduleDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>시간</label>
+                <input type="time" id="scheduleTime" required>
+            </div>
+
+            <div class="form-group">
+                <label>메모 (선택사항)</label>
+                <textarea id="scheduleNotes" rows="3" placeholder="예: 부품 준비 필요, 예상 작업 시간 1시간"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeScheduleModal()">취소</button>
+                <button class="btn btn-primary" onclick="submitVisitSchedule()">제안 전송</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 채팅 사이드바 -->
+    <div class="chat-section" id="chatSection">
+        <div class="chat-header">
+            <div>
+                <div style="font-size: 1.2rem; font-weight: bold;" id="chatCustomerName">고객</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;" id="chatRequestInfo">-</div>
+            </div>
+            <button class="chat-close" onclick="closeChat()">✕</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- 채팅 메시지 -->
+        </div>
+
+        <div class="chat-input-area">
+            <label for="techFileInput" style="cursor: pointer; font-size: 1.5rem;">📷</label>
+            <input type="file" id="techFileInput" style="display: none;" accept="image/*" onchange="handleTechFileSelect(event)">
+
+            <input type="text" class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." onkeypress="handleChatKeyPress(event)">
+
+            <button class="chat-send" onclick="sendTechMessage()">전송</button>
+        </div>
+    </div>
+
+    <script>
+        // 자동으로 서버 주소 감지 (모바일/PC 모두 지원)
+        const hostname = window.location.hostname || 'localhost';
+        const API_URL = `http://${hostname}:53001/api`;
+        const WS_URL = `ws://${hostname}:53001/ws`;
+
+        const technicianName = '박기사';
+        let requests = [];
+        let currentChatRequest = null;
+        let chatWs = null;
+        let selectedTechFile = null;
+
+        // 시간 업데이트
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ko-KR');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 요청 로드
+        async function loadRequests() {
+            try {
+                const response = await fetch(`${API_URL}/as-requests`);
+                requests = await response.json();
+                renderRequests();
+                updateStats();
+            } catch (error) {
+                console.error('요청 로드 실패:', error);
+            }
+        }
+
+        // 통계 업데이트
+        async function updateStats() {
+            try {
+                const response = await fetch(`${API_URL}/statistics/dashboard`);
+                const stats = await response.json();
+
+                document.getElementById('todayRequests').textContent = stats.today_requests;
+                document.getElementById('pendingRequests').textContent = stats.status_counts.pending || 0;
+                document.getElementById('completedToday').textContent = stats.status_counts.completed || 0;
+                document.getElementById('avgResponseTime').textContent = stats.avg_response_time_minutes + '분';
+
+                // 배지 업데이트
+                document.getElementById('pendingBadge').textContent = stats.status_counts.pending || 0;
+                document.getElementById('needsVisitBadge').textContent = stats.status_counts.needs_visit || 0;
+                document.getElementById('inProgressBadge').textContent = stats.status_counts.in_progress || 0;
+                document.getElementById('completedBadge').textContent = stats.status_counts.completed || 0;
+
+            } catch (error) {
+                console.error('통계 로드 실패:', error);
+            }
+        }
+
+        // 요청 렌더링
+        function renderRequests() {
+            const tabs = ['pending', 'needs_visit', 'in_progress', 'completed', 'all'];
+
+            tabs.forEach(tab => {
+                const container = document.getElementById(tab);
+                container.innerHTML = '';
+
+                const filteredRequests = tab === 'all' ? requests : requests.filter(r => r.status === tab);
+
+                if (filteredRequests.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>${tab === 'needs_visit' ? '🚗 출동 요청이 없습니다' : '요청이 없습니다'}</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 출동 요청 탭은 긴급 우선순위로 정렬
+                const sortedRequests = tab === 'needs_visit'
+                    ? filteredRequests.sort((a, b) => {
+                        if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
+                        if (a.priority !== 'urgent' && b.priority === 'urgent') return 1;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    })
+                    : filteredRequests;
+
+                sortedRequests.forEach(request => {
+                    container.appendChild(createRequestCard(request));
+                });
+            });
+        }
+
+        // 요청 카드 생성
+        function createRequestCard(request) {
+            const card = document.createElement('div');
+            card.className = 'request-card';
+            if (request.priority === 'high') card.classList.add('priority-high');
+            if (request.priority === 'urgent') card.classList.add('priority-urgent');
+
+            const timeAgo = getTimeAgo(new Date(request.created_at));
+            const statusText = {
+                'pending': '대기중',
+                'assigned': '배정됨',
+                'in_progress': '진행중',
+                'needs_visit': '🚗 출동 요청',
+                'completed': '완료',
+                'confirmed': '확인됨'
+            }[request.status] || request.status;
+
+            card.innerHTML = `
+                <div class="request-header">
+                    <div>
+                        <div class="request-title">${request.bay_number}번 베이 - ${request.equipment_type}</div>
+                        <div class="request-time">${timeAgo}</div>
+                    </div>
+                    <div class="request-badges">
+                        <span class="badge badge-status">${statusText}</span>
+                        ${request.priority !== 'normal' ? `<span class="badge badge-urgent">${request.priority === 'urgent' ? '긴급' : '높음'}</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="request-info">
+                    <div class="info-item">
+                        <span class="info-icon">👤</span>
+                        <div>
+                            <div class="info-label">고객</div>
+                            <div class="info-value">${request.customer_name}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">📞</span>
+                        <div>
+                            <div class="info-label">전화번호</div>
+                            <div class="info-value">
+                                <a href="tel:${request.customer_phone}" style="color: #2c3e50; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px;">
+                                    ${request.customer_phone}
+                                    <span style="font-size: 1.2rem; color: #27ae60;">📱</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⚠️</span>
+                        <div>
+                            <div class="info-label">문제</div>
+                            <div class="info-value">${request.problem_type}</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${request.diagnosis_result ? `
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem;">
+                        <strong>AI 진단:</strong> ${request.diagnosis_result}
+                    </div>
+                ` : ''}
+
+                <div class="request-actions">
+                    ${request.status === 'pending' ? `
+                        <button class="btn btn-primary" onclick="acceptRequest('${request.id}')">
+                            ✅ 배정 받기
+                        </button>
+                        <button class="btn btn-primary" onclick="openChat('${request.id}')" style="background: #667eea;">
+                            💬 채팅 확인
+                        </button>
+                    ` : ''}
+                    ${request.status === 'needs_visit' ? `
+                        <button class="btn btn-danger" onclick="proposeVisitSchedule('${request.id}')" style="background: linear-gradient(135deg, #e74c3c, #c0392b); flex: 2;">
+                            📅 출동 시간 제안
+                        </button>
+                        <button class="btn btn-primary" onclick="openChat('${request.id}')">
+                            💬 채팅
+                        </button>
+                    ` : ''}
+                    ${request.status === 'assigned' || request.status === 'in_progress' ? `
+                        <button class="btn btn-primary" onclick="openChat('${request.id}')">
+                            💬 채팅
+                        </button>
+                        ${request.status === 'assigned' ? `
+                            <button class="btn btn-success" onclick="startWork('${request.id}')">
+                                🔧 작업 시작
+                            </button>
+                        ` : ''}
+                        ${request.status === 'in_progress' ? `
+                            <button class="btn btn-success" onclick="completeWork('${request.id}')">
+                                ✅ 수리 완료
+                            </button>
+                        ` : ''}
+                    ` : ''}
+                    <button class="btn btn-secondary" onclick="viewDetails('${request.id}')">
+                        상세보기
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 상태 변경 함수들
+        async function acceptRequest(requestId) {
+            await updateRequestStatus(requestId, 'assigned');
+            playNotificationSound();
+
+            // 배정 후 자동으로 채팅방 열기
+            setTimeout(() => {
+                openChat(requestId);
+            }, 500);
+        }
+
+        async function startWork(requestId) {
+            await updateRequestStatus(requestId, 'in_progress');
+        }
+
+        async function completeWork(requestId) {
+            if (!confirm('수리를 완료하셨나요?')) return;
+            await updateRequestStatus(requestId, 'completed');
+            playNotificationSound();
+        }
+
+        // 출동 스케줄 제안
+        let currentScheduleRequestId = null;
+
+        function proposeVisitSchedule(requestId) {
+            currentScheduleRequestId = requestId;
+
+            // 내일 날짜 기본값
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            document.getElementById('scheduleDate').value = dateStr;
+
+            // 오전 9시 기본값
+            document.getElementById('scheduleTime').value = '09:00';
+            document.getElementById('scheduleNotes').value = '';
+
+            // 모달 열기
+            document.getElementById('scheduleModal').classList.add('active');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').classList.remove('active');
+            currentScheduleRequestId = null;
+        }
+
+        async function submitVisitSchedule() {
+            const date = document.getElementById('scheduleDate').value;
+            const time = document.getElementById('scheduleTime').value;
+            const notes = document.getElementById('scheduleNotes').value;
+
+            if (!date || !time) {
+                alert('날짜와 시간을 선택해주세요');
+                return;
+            }
+
+            try {
+                // 스케줄 제안 생성
+                const response = await fetch(`${API_URL}/visit-schedules`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request_id: currentScheduleRequestId,
+                        proposed_by: 'technician',
+                        proposed_date: date,
+                        proposed_time: time,
+                        notes: notes || null
+                    })
+                });
+
+                const schedule = await response.json();
+
+                // 채팅에 스케줄 메시지 자동 전송
+                const dateObj = new Date(date + 'T' + time);
+                const dateStr = dateObj.toLocaleDateString('ko-KR', {
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'short'
+                });
+                const timeStr = dateObj.toLocaleTimeString('ko-KR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                await fetch(`${API_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request_id: currentScheduleRequestId,
+                        sender_type: 'technician',
+                        sender_name: technicianName,
+                        message_type: 'text',
+                        content: `📅 출동 시간 제안드립니다\n\n날짜: ${dateStr}\n시간: ${timeStr}\n\n${notes ? '메모: ' + notes : '위 시간에 방문 가능하시면 수락 버튼을 눌러주세요!'}`
+                    })
+                });
+
+                closeScheduleModal();
+                alert('출동 시간 제안이 전송되었습니다!');
+                loadRequests();
+
+            } catch (error) {
+                console.error('스케줄 제안 실패:', error);
+                alert('스케줄 제안 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function updateRequestStatus(requestId, status) {
+            try {
+                await fetch(`${API_URL}/as-requests/${requestId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, assigned_technician: technicianName })
+                });
+                loadRequests();
+            } catch (error) {
+                console.error('상태 업데이트 실패:', error);
+            }
+        }
+
+        // 채팅 열기
+        async function openChat(requestId) {
+            const request = requests.find(r => r.id === requestId);
+            if (!request) return;
+
+            currentChatRequest = request;
+
+            document.getElementById('chatCustomerName').textContent = request.customer_name;
+            document.getElementById('chatRequestInfo').textContent = `${request.bay_number}번 베이 - ${request.equipment_type}`;
+
+            // 채팅 메시지 로드
+            const response = await fetch(`${API_URL}/as-requests/${requestId}/messages`);
+            const messages = await response.json();
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+
+            messages.forEach(msg => {
+                displayChatMessage(msg);
+            });
+
+            // WebSocket 연결
+            if (chatWs) chatWs.close();
+            chatWs = new WebSocket(`${WS_URL}/${requestId}`);
+            chatWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'new_message') {
+                    displayChatMessage(data.data);
+                }
+            };
+
+            document.getElementById('chatSection').classList.add('active');
+        }
+
+        function displayChatMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${message.sender_type}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+
+            if (message.message_type === 'image' && message.file_url) {
+                const img = document.createElement('img');
+                img.src = `http://localhost:53001${message.file_url}`;
+                img.style.maxWidth = '100%';
+                img.style.borderRadius = '10px';
+                img.style.cursor = 'pointer';
+                img.onclick = () => window.open(img.src, '_blank');
+                bubble.appendChild(img);
+            }
+
+            if (message.content) {
+                const text = document.createElement('div');
+                text.textContent = message.content;
+                bubble.appendChild(text);
+            }
+
+            const time = document.createElement('div');
+            time.style.fontSize = '0.7rem';
+            time.style.opacity = '0.7';
+            time.style.marginTop = '5px';
+            time.textContent = new Date(message.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            bubble.appendChild(time);
+
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendTechMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message && !selectedTechFile) return;
+
+            let fileUrl = null;
+
+            if (selectedTechFile) {
+                const formData = new FormData();
+                formData.append('file', selectedTechFile);
+                formData.append('request_id', currentChatRequest.id);
+                formData.append('uploaded_by', technicianName);
+
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                fileUrl = data.file_url;
+            }
+
+            await fetch(`${API_URL}/chat-messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    request_id: currentChatRequest.id,
+                    sender_type: 'technician',
+                    sender_name: technicianName,
+                    message_type: fileUrl ? 'image' : 'text',
+                    content: message || '사진',
+                    file_url: fileUrl
+                })
+            });
+
+            input.value = '';
+            selectedTechFile = null;
+        }
+
+        function handleTechFileSelect(event) {
+            selectedTechFile = event.target.files[0];
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendTechMessage();
+            }
+        }
+
+        function closeChat() {
+            const chatSection = document.getElementById('chatSection');
+            if (chatSection) {
+                chatSection.classList.remove('active');
+            }
+
+            if (chatWs) {
+                try {
+                    chatWs.close();
+                    chatWs = null;
+                } catch (e) {
+                    console.log('WebSocket 닫기 에러:', e);
+                }
+            }
+
+            currentChatRequest = null;
+            console.log('✅ 채팅방 닫힘');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function viewDetails(requestId) {
+            window.open(`as-request-detail.html?id=${requestId}`, '_blank');
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return `${seconds}초 전`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}분 전`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}시간 전`;
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function playNotificationSound() {
+            // 실제로는 audio 파일 재생
+            console.log('🔔 알림음');
+        }
+
+        // 새 요청 알림 (WebSocket으로 실시간 수신)
+        function showNewRequestNotification(request) {
+            const notification = document.createElement('div');
+            notification.className = 'new-request-notification';
+            notification.innerHTML = `
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">🚨 새로운 AS 요청</div>
+                <div>${request.bay_number}번 베이 - ${request.equipment_type}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">${request.customer_name}</div>
+            `;
+            notification.style.cursor = 'pointer';
+            notification.onclick = () => {
+                openChat(request.id);
+                notification.remove();
+            };
+            document.body.appendChild(notification);
+
+            playNotificationSound();
+
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        // 긴급 출동 요청 알림 (특별한 스타일로 강조)
+        function showUrgentVisitNotification(request) {
+            const notification = document.createElement('div');
+            notification.className = 'new-request-notification';
+            notification.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+            notification.style.animation = 'slideIn 0.5s, pulse 1s infinite';
+            notification.innerHTML = `
+                <div style="font-size: 1.4rem; font-weight: bold; margin-bottom: 8px;">🚗🚨 긴급 출동 요청!</div>
+                <div style="font-size: 1.1rem; margin-bottom: 5px;">${request.bay_number}번 베이 - ${request.equipment_type}</div>
+                <div style="font-size: 0.95rem; margin-bottom: 10px;">${request.customer_name} / ${request.customer_phone}</div>
+                <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 5px; font-size: 0.9rem;">
+                    클릭하여 출동 시간을 제안하세요
+                </div>
+            `;
+            notification.style.cursor = 'pointer';
+            notification.onclick = () => {
+                // 스케줄 제안 모달 바로 열기
+                proposeVisitSchedule(request.id);
+                notification.remove();
+            };
+            document.body.appendChild(notification);
+
+            playNotificationSound();
+            playNotificationSound(); // 긴급은 2번 울림
+
+            setTimeout(() => {
+                notification.remove();
+            }, 8000); // 긴급은 8초간 표시
+        }
+
+        // WebSocket으로 새 요청 실시간 감지
+        function connectGlobalWebSocket() {
+            const globalWs = new WebSocket(`${WS_URL}/technician/global`);
+
+            globalWs.onopen = () => {
+                console.log('✅ 실시간 알림 연결됨');
+                // 연결 유지를 위한 ping
+                setInterval(() => {
+                    if (globalWs.readyState === WebSocket.OPEN) {
+                        globalWs.send('ping');
+                    }
+                }, 30000); // 30초마다
+            };
+
+            globalWs.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'new_request') {
+                        // 새 요청이 들어왔을 때
+                        console.log('🚨 새 요청:', data.data);
+                        showNewRequestNotification(data.data);
+                        loadRequests(); // 목록 갱신
+                        updateStats(); // 통계 갱신
+                        playNotificationSound(); // 알림음
+                    } else if (data.type === 'urgent_visit_request') {
+                        // 긴급 출동 요청이 들어왔을 때
+                        console.log('🚗🚨 긴급 출동 요청:', data.data);
+                        showUrgentVisitNotification(data.data);
+                        loadRequests(); // 목록 갱신
+                        updateStats(); // 통계 갱신
+                        playNotificationSound(); // 알림음
+                    }
+                } catch (e) {
+                    // ping/pong 응답 무시
+                    console.log('WebSocket message:', event.data);
+                }
+            };
+
+            globalWs.onerror = (error) => {
+                console.log('❌ WebSocket 에러, 3초 후 재연결...', error);
+                setTimeout(connectGlobalWebSocket, 3000);
+            };
+
+            globalWs.onclose = () => {
+                console.log('🔌 WebSocket 연결 종료, 3초 후 재연결...');
+                setTimeout(connectGlobalWebSocket, 3000);
+            };
+        }
+
+        // ==================== 로그 분석 기능 ====================
+
+        async function loadLogStatistics() {
+            try {
+                const response = await fetch(`${API_URL}/logs/statistics`);
+                const stats = await response.json();
+
+                // 통계 카드 업데이트
+                document.getElementById('logTotalLogs').textContent = stats.total_logs.toLocaleString();
+                document.getElementById('logUniqueIps').textContent = stats.unique_ips.toLocaleString();
+                document.getElementById('logTodayActivities').textContent = stats.today_activities.toLocaleString();
+
+                // TOP 검색어
+                const topSearchesEl = document.getElementById('logTopSearches');
+                if (stats.top_searches.length === 0) {
+                    topSearchesEl.innerHTML = '<div style="color: #95a5a6;">검색 기록이 없습니다</div>';
+                } else {
+                    topSearchesEl.innerHTML = stats.top_searches.map((item, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0;">
+                            <div>
+                                <span style="font-weight: bold; color: #3498db; margin-right: 10px;">${index + 1}.</span>
+                                <span style="font-weight: 600;">${item.keyword}</span>
+                            </div>
+                            <span style="background: #3498db; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${item.count}회</span>
+                        </div>
+                    `).join('');
+                }
+
+                // TOP IP 주소
+                const topIpsEl = document.getElementById('logTopIps');
+                if (stats.top_ips.length === 0) {
+                    topIpsEl.innerHTML = '<div style="color: #95a5a6;">활동 기록이 없습니다</div>';
+                } else {
+                    topIpsEl.innerHTML = stats.top_ips.map((item, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0;">
+                            <div>
+                                <span style="font-weight: bold; color: #27ae60; margin-right: 10px;">${index + 1}.</span>
+                                <span style="font-family: monospace; font-weight: 600; cursor: pointer; color: #2c3e50;" onclick="searchByIpDirect('${item.ip}')">${item.ip}</span>
+                            </div>
+                            <span style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${item.count}회</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 액션 타입별 분포
+                const actionCountsEl = document.getElementById('logActionCounts');
+                const actionTypeNames = {
+                    'page_view': '📄 페이지 조회',
+                    'search': '🔍 검색',
+                    'wizard_start': '🔬 AI 진단 시작',
+                    'symptom_select': '⚠️ 증상 선택',
+                    'wizard_complete': '✅ 진단 완료',
+                    'manual_view': '📖 매뉴얼 조회',
+                    'as_request_created': '🚨 AS 요청',
+                    'chat_start': '💬 채팅 시작',
+                    'chat_send': '💬 채팅 메시지',
+                    'phone_call': '📞 전화 연결',
+                    'button_click': '🖱️ 버튼 클릭',
+                    'file_upload': '📤 파일 업로드',
+                    'page_leave': '👋 페이지 이탈',
+                    'error': '❌ 에러'
+                };
+
+                if (Object.keys(stats.action_counts).length === 0) {
+                    actionCountsEl.innerHTML = '<div style="color: #95a5a6;">활동 기록이 없습니다</div>';
+                } else {
+                    const sortedActions = Object.entries(stats.action_counts).sort((a, b) => b[1] - a[1]);
+                    actionCountsEl.innerHTML = sortedActions.map(([action, count]) => {
+                        const percentage = Math.round((count / stats.total_logs) * 100);
+                        return `
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>${actionTypeNames[action] || action}</span>
+                                    <span style="font-weight: bold;">${count}회 (${percentage}%)</span>
+                                </div>
+                                <div style="background: #f0f0f0; border-radius: 10px; height: 8px; overflow: hidden;">
+                                    <div style="background: #3498db; height: 100%; width: ${percentage}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 시간대별 활동
+                const hourlyEl = document.getElementById('logHourlyActivity');
+                if (stats.hourly_activity.length === 0) {
+                    hourlyEl.innerHTML = '<div style="color: #95a5a6;">최근 24시간 활동 기록이 없습니다</div>';
+                } else {
+                    const maxCount = Math.max(...stats.hourly_activity.map(h => h.count));
+                    hourlyEl.innerHTML = stats.hourly_activity.map(item => {
+                        const percentage = maxCount > 0 ? Math.round((item.count / maxCount) * 100) : 0;
+                        return `
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>${item.hour}시</span>
+                                    <span style="font-weight: bold;">${item.count}회</span>
+                                </div>
+                                <div style="background: #f0f0f0; border-radius: 10px; height: 6px; overflow: hidden;">
+                                    <div style="background: #f39c12; height: 100%; width: ${percentage}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (error) {
+                console.error('로그 통계 로드 실패:', error);
+            }
+        }
+
+        async function searchByIp() {
+            const ip = document.getElementById('ipSearchInput').value.trim();
+            if (!ip) {
+                alert('IP 주소를 입력하세요');
+                return;
+            }
+            searchByIpDirect(ip);
+        }
+
+        async function searchByIpDirect(ip) {
+            // IP 검색 인풋에 값 설정
+            document.getElementById('ipSearchInput').value = ip;
+
+            const resultsEl = document.getElementById('ipSearchResults');
+            resultsEl.innerHTML = '<div style="text-align: center; padding: 20px; color: #95a5a6;">로딩 중...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/logs/ip/${encodeURIComponent(ip)}`);
+                const data = await response.json();
+
+                if (data.logs.length === 0) {
+                    resultsEl.innerHTML = '<div style="color: #95a5a6;">해당 IP의 활동 기록이 없습니다</div>';
+                    return;
+                }
+
+                const actionTypeNames = {
+                    'page_view': '📄 페이지 조회',
+                    'search': '🔍 검색',
+                    'wizard_start': '🔬 AI 진단 시작',
+                    'symptom_select': '⚠️ 증상 선택',
+                    'wizard_complete': '✅ 진단 완료',
+                    'manual_view': '📖 매뉴얼 조회',
+                    'as_request_created': '🚨 AS 요청',
+                    'chat_start': '💬 채팅 시작',
+                    'chat_send': '💬 채팅 메시지',
+                    'phone_call': '📞 전화 연결',
+                    'button_click': '🖱️ 버튼 클릭',
+                    'file_upload': '📤 파일 업로드',
+                    'page_leave': '👋 페이지 이탈',
+                    'error': '❌ 에러'
+                };
+
+                resultsEl.innerHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px; color: #2c3e50;">📊 IP 통계: ${ip}</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d;">총 활동</div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;">${data.statistics.total}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d;">액션 타입</div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #27ae60;">${data.statistics.unique_actions}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d;">최초 방문</div>
+                                <div style="font-size: 0.9rem; font-weight: bold; color: #f39c12;">${new Date(data.statistics.first_seen).toLocaleString('ko-KR')}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d;">최근 활동</div>
+                                <div style="font-size: 0.9rem; font-weight: bold; color: #e74c3c;">${new Date(data.statistics.last_seen).toLocaleString('ko-KR')}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 10px; color: #2c3e50;">📋 활동 로그 (최근 50개)</h4>
+                    <div style="max-height: 600px; overflow-y: auto;">
+                        ${data.logs.map(log => {
+                            const actionName = actionTypeNames[log.action_type] || log.action_type;
+                            let detailHtml = '';
+
+                            if (log.search_keyword) {
+                                detailHtml = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 3px;">검색: "${log.search_keyword}"</div>`;
+                            } else if (log.action_detail) {
+                                try {
+                                    const detail = JSON.parse(log.action_detail);
+                                    const detailText = Object.entries(detail).map(([k, v]) => `${k}: ${v}`).join(', ');
+                                    detailHtml = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 3px;">${detailText}</div>`;
+                                } catch(e) {
+                                    detailHtml = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 3px;">${log.action_detail}</div>`;
+                                }
+                            }
+
+                            return `
+                                <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; background: white; margin-bottom: 5px; border-radius: 5px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600;">${actionName}</div>
+                                            ${detailHtml}
+                                            ${log.page_url ? `<div style="font-size: 0.8rem; color: #95a5a6; margin-top: 3px;">📄 ${log.page_url}</div>` : ''}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: #95a5a6; text-align: right; white-space: nowrap; margin-left: 10px;">
+                                            ${new Date(log.created_at).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('IP 검색 실패:', error);
+                resultsEl.innerHTML = '<div style="color: #e74c3c;">검색 중 오류가 발생했습니다</div>';
+            }
+        }
+
+        // 초기화
+        loadRequests();
+        setInterval(loadRequests, 30000); // 30초마다 갱신 (실시간 알림이 있으므로 간격 늘림)
+        setInterval(updateStats, 30000);
+
+        // 실시간 알림을 위한 WebSocket 연결
+        connectGlobalWebSocket();
+
+        // ==================== 로그 관리 ====================
+
+        let logAutoRefreshInterval = null;
+
+        // 로그 불러오기
+        async function loadLogs() {
+            const lines = document.getElementById('logLinesSelect').value;
+
+            try {
+                const response = await fetch(`${API_URL}/logs/realtime?lines=${lines}`);
+                const data = await response.json();
+
+                displayLogs(data.logs);
+                document.getElementById('logCount').textContent = `${data.total}줄`;
+            } catch (error) {
+                console.error('로그 로드 실패:', error);
+                document.getElementById('logOutput').textContent = '로그를 불러올 수 없습니다.';
+            }
+        }
+
+        // 로그 검색
+        async function searchLogs() {
+            const keyword = document.getElementById('logSearchInput').value.trim();
+            if (!keyword) {
+                loadLogs();
+                return;
+            }
+
+            const lines = document.getElementById('logLinesSelect').value;
+
+            try {
+                const response = await fetch(`${API_URL}/logs/search?keyword=${encodeURIComponent(keyword)}&lines=${lines}`);
+                const data = await response.json();
+
+                displayLogs(data.logs);
+                document.getElementById('logCount').textContent = `${data.total}건 (검색: "${keyword}")`;
+            } catch (error) {
+                console.error('로그 검색 실패:', error);
+                document.getElementById('logOutput').textContent = '검색 중 오류가 발생했습니다.';
+            }
+        }
+
+        // 검색 초기화
+        function clearSearch() {
+            document.getElementById('logSearchInput').value = '';
+            loadLogs();
+        }
+
+        // 로그 표시
+        function displayLogs(logs) {
+            const output = document.getElementById('logOutput');
+
+            if (logs.length === 0) {
+                output.innerHTML = '<div style="color: #95a5a6; text-align: center; padding: 40px;">로그가 없습니다.</div>';
+                return;
+            }
+
+            // 로그 파싱 및 포맷팅
+            const formattedLogs = logs.map(line => {
+                // 로그 파싱: 시간 | 레벨 | 내용
+                const match = line.match(/^([\d-]+ [\d:]+) \| (\w+) \| (.+)$/);
+
+                if (!match) {
+                    return `<div style="padding: 10px; margin-bottom: 5px; background: rgba(255,255,255,0.05); border-radius: 5px; color: #d4d4d4;">${escapeHtml(line)}</div>`;
+                }
+
+                const [, timestamp, level, content] = match;
+
+                // 레벨별 색상
+                let levelColor = '#5dade2';
+                let levelIcon = 'ℹ️';
+                let bgColor = 'rgba(93, 173, 226, 0.1)';
+
+                if (level === 'ERROR') {
+                    levelColor = '#e74c3c';
+                    levelIcon = '❌';
+                    bgColor = 'rgba(231, 76, 60, 0.1)';
+                } else if (level === 'WARNING') {
+                    levelColor = '#f39c12';
+                    levelIcon = '⚠️';
+                    bgColor = 'rgba(243, 156, 18, 0.1)';
+                } else if (content.includes('AS 요청 생성')) {
+                    levelIcon = '📋';
+                    levelColor = '#2ecc71';
+                    bgColor = 'rgba(46, 204, 113, 0.1)';
+                } else if (content.includes('채팅 메시지')) {
+                    levelIcon = '💬';
+                    levelColor = '#3498db';
+                    bgColor = 'rgba(52, 152, 219, 0.1)';
+                } else if (content.includes('파일 업로드')) {
+                    levelIcon = '📎';
+                    levelColor = '#9b59b6';
+                    bgColor = 'rgba(155, 89, 182, 0.1)';
+                } else if (content.includes('출동 스케줄')) {
+                    levelIcon = '📅';
+                    levelColor = '#1abc9c';
+                    bgColor = 'rgba(26, 188, 156, 0.1)';
+                }
+
+                // 내용 파싱 (ID, IP, 고객 등)
+                const parts = content.split(' | ').map(p => p.trim());
+                let formattedContent = '';
+
+                parts.forEach((part, index) => {
+                    if (index === 0) {
+                        // 첫 번째는 이벤트 타입
+                        formattedContent += `<div style="font-weight: bold; color: ${levelColor}; margin-bottom: 8px; font-size: 1.05em;">${levelIcon} ${escapeHtml(part)}</div>`;
+                    } else {
+                        // 나머지는 태그로 표시
+                        const [key, ...valueParts] = part.split(':');
+                        const value = valueParts.join(':').trim();
+
+                        let tagColor = '#546e7a';
+                        if (key.includes('IP')) tagColor = '#7e57c2';
+                        else if (key.includes('고객')) tagColor = '#26a69a';
+                        else if (key.includes('베이')) tagColor = '#ff7043';
+                        else if (key.includes('ID')) tagColor = '#42a5f5';
+
+                        formattedContent += `
+                            <span style="display: inline-block; margin-right: 8px; margin-bottom: 5px; padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.9em;">
+                                <span style="color: ${tagColor}; font-weight: 600;">${escapeHtml(key)}:</span>
+                                <span style="color: #ecf0f1; margin-left: 4px;">${escapeHtml(value)}</span>
+                            </span>
+                        `;
+                    }
+                });
+
+                return `
+                    <div style="padding: 12px 15px; margin-bottom: 8px; background: ${bgColor}; border-left: 4px solid ${levelColor}; border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                ${formattedContent}
+                            </div>
+                            <div style="color: #95a5a6; font-size: 0.85em; white-space: nowrap; margin-left: 15px;">
+                                🕐 ${escapeHtml(timestamp)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            output.innerHTML = formattedLogs;
+
+            // 자동 스크롤 (맨 아래로)
+            output.parentElement.scrollTop = output.parentElement.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 자동 새로고침 토글
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefreshCheckbox');
+
+            if (checkbox.checked) {
+                // 5초마다 새로고침
+                logAutoRefreshInterval = setInterval(() => {
+                    loadLogs();
+                }, 5000);
+            } else {
+                // 자동 새로고침 중지
+                if (logAutoRefreshInterval) {
+                    clearInterval(logAutoRefreshInterval);
+                    logAutoRefreshInterval = null;
+                }
+            }
+        }
+
+        // 로그 탭 활성화시 로그 로드
+        const originalSwitchTab = switchTab;
+        window.switchTab = function(tab) {
+            originalSwitchTab.call(this, tab);
+            if (tab === 'logs') {
+                loadLogs();
+                // 자동 새로고침 활성화
+                if (document.getElementById('autoRefreshCheckbox').checked && !logAutoRefreshInterval) {
+                    toggleAutoRefresh();
+                }
+            } else {
+                // 다른 탭으로 이동 시 자동 새로고침 중지
+                if (logAutoRefreshInterval) {
+                    clearInterval(logAutoRefreshInterval);
+                    logAutoRefreshInterval = null;
+                }
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS 요청 상세보기</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 상태 배지 */
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .status-pending { background: #ffc107; color: #000; }
+        .status-assigned { background: #17a2b8; color: white; }
+        .status-in_progress { background: #007bff; color: white; }
+        .status-needs_visit { background: #e74c3c; color: white; }
+        .status-completed { background: #28a745; color: white; }
+        .status-confirmed { background: #6c757d; color: white; }
+
+        /* 콘텐츠 */
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* 타임라인 */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -33px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3498db;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #3498db;
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .timeline-detail {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* 채팅 메시지 */
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .chat-message.customer {
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-message.technician {
+            border-left: 4px solid #27ae60;
+        }
+
+        .chat-sender {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .chat-content {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .chat-image {
+            max-width: 300px;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        /* 첨부파일 */
+        .attachment-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .attachment-icon {
+            font-size: 2rem;
+        }
+
+        .attachment-info {
+            flex: 1;
+        }
+
+        .attachment-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .attachment-meta {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .download-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .download-btn:hover {
+            background: #2980b9;
+        }
+
+        /* 스케줄 카드 */
+        .schedule-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .schedule-card.accepted {
+            border-left-color: #27ae60;
+        }
+
+        .schedule-card.rejected {
+            border-left-color: #95a5a6;
+        }
+
+        .schedule-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .schedule-status.proposed { background: #ffc107; color: #000; }
+        .schedule-status.accepted { background: #27ae60; color: white; }
+        .schedule-status.rejected { background: #95a5a6; color: white; }
+
+        .schedule-datetime {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        /* 진단 히스토리 */
+        .diagnosis-step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .diagnosis-step-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .diagnosis-step-detail {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #95a5a6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📋 AS 요청 상세보기</h1>
+                <span id="requestStatus"></span>
+            </div>
+            <button class="close-btn" onclick="window.close()">← 닫기</button>
+        </div>
+
+        <div class="content" id="content">
+            <div class="loading">🔄 데이터를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script>
+        const hostname = window.location.hostname || 'localhost';
+        const API_URL = `http://${hostname}:53001/api`;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestId = urlParams.get('id');
+
+        if (!requestId) {
+            document.getElementById('content').innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
+                    <div>요청 ID가 없습니다</div>
+                </div>
+            `;
+        } else {
+            loadRequestDetail();
+        }
+
+        async function loadRequestDetail() {
+            try {
+                const response = await fetch(`${API_URL}/as-requests/${requestId}`);
+                const data = await response.json();
+
+                renderRequestDetail(data);
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+                document.getElementById('content').innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+                        <div>데이터를 불러올 수 없습니다</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderRequestDetail(data) {
+            const statusText = {
+                'pending': '대기중',
+                'assigned': '배정됨',
+                'in_progress': '진행중',
+                'needs_visit': '🚗 출동 요청',
+                'completed': '완료',
+                'confirmed': '확인됨'
+            }[data.status] || data.status;
+
+            const priorityText = {
+                'normal': '보통',
+                'high': '높음',
+                'urgent': '긴급'
+            }[data.priority] || data.priority;
+
+            document.getElementById('requestStatus').innerHTML = `
+                <span class="status-badge status-${data.status}">${statusText}</span>
+                ${data.priority !== 'normal' ? `<span class="status-badge" style="background: #e74c3c;">${priorityText}</span>` : ''}
+            `;
+
+            let html = `
+                <!-- 기본 정보 -->
+                <div class="section">
+                    <div class="section-title">
+                        <span>📌</span> 기본 정보
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">베이 번호</div>
+                            <div class="info-value">${data.bay_number}번</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">장비 종류</div>
+                            <div class="info-value">${data.equipment_type}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">문제 유형</div>
+                            <div class="info-value">${data.problem_type}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">고객명</div>
+                            <div class="info-value">${data.customer_name}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">연락처</div>
+                            <div class="info-value"><a href="tel:${data.customer_phone}" style="color: #3498db; text-decoration: none;">${data.customer_phone}</a></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">담당 기사</div>
+                            <div class="info-value">${data.assigned_technician || '미배정'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">요청 시간</div>
+                            <div class="info-value">${formatDateTime(data.created_at)}</div>
+                        </div>
+                    </div>
+                    ${data.diagnosis_result ? `
+                        <div style="margin-top: 20px; background: #e3f2fd; padding: 15px; border-radius: 10px; border-left: 4px solid #2196f3;">
+                            <div style="font-weight: 600; margin-bottom: 5px; color: #1976d2;">🤖 AI 진단 결과</div>
+                            <div style="color: #0d47a1;">${data.diagnosis_result}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // AI 진단 히스토리
+            if (data.diagnosis_history && data.diagnosis_history.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>🔬</span> AI 진단 과정
+                        </div>
+                `;
+
+                data.diagnosis_history.forEach((log, index) => {
+                    const actionName = {
+                        'wizard_start': '🎯 진단 시작',
+                        'symptom_select': '✅ 증상 선택',
+                        'wizard_complete': '🏁 진단 완료'
+                    }[log.action_type] || log.action_type;
+
+                    let detail = '';
+                    if (log.action_detail) {
+                        try {
+                            const detailObj = JSON.parse(log.action_detail);
+                            detail = Object.entries(detailObj).map(([k, v]) => `${k}: ${v}`).join(', ');
+                        } catch (e) {
+                            detail = log.action_detail;
+                        }
+                    }
+
+                    html += `
+                        <div class="diagnosis-step">
+                            <div class="diagnosis-step-title">
+                                ${index + 1}. ${actionName}
+                                <span style="font-size: 0.85rem; color: #7f8c8d; margin-left: 10px;">${formatTime(log.created_at)}</span>
+                            </div>
+                            ${detail ? `<div class="diagnosis-step-detail">${detail}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            }
+
+            // 출동 스케줄
+            if (data.visit_schedules && data.visit_schedules.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>📅</span> 출동 스케줄
+                        </div>
+                `;
+
+                data.visit_schedules.forEach(schedule => {
+                    const statusText = {
+                        'proposed': '제안됨',
+                        'accepted': '수락됨',
+                        'rejected': '거절됨',
+                        'confirmed': '확정됨'
+                    }[schedule.status] || schedule.status;
+
+                    const date = new Date(schedule.proposed_date + 'T' + schedule.proposed_time);
+                    const dateStr = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+                    const timeStr = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+                    html += `
+                        <div class="schedule-card ${schedule.status}">
+                            <span class="schedule-status ${schedule.status}">${statusText}</span>
+                            <div class="schedule-datetime">📅 ${dateStr} ${timeStr}</div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">제안자: ${schedule.proposed_by === 'technician' ? '기사' : '고객'}</div>
+                            ${schedule.notes ? `<div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">💬 ${schedule.notes}</div>` : ''}
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #95a5a6;">생성: ${formatDateTime(schedule.created_at)}</div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            }
+
+            // 채팅 히스토리
+            if (data.messages && data.messages.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>💬</span> 채팅 히스토리
+                        </div>
+                `;
+
+                data.messages.forEach(msg => {
+                    html += `
+                        <div class="chat-message ${msg.sender_type}">
+                            <div class="chat-sender">
+                                ${msg.sender_type === 'customer' ? '👤' : '🔧'} ${msg.sender_name}
+                            </div>
+                            <div class="chat-content">${msg.content}</div>
+                            ${msg.file_url ? `<img src="http://${hostname}:53001${msg.file_url}" class="chat-image" onclick="window.open(this.src, '_blank')">` : ''}
+                            <div class="chat-time">${formatDateTime(msg.created_at)}</div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            }
+
+            // 첨부파일
+            if (data.attachments && data.attachments.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>📎</span> 첨부파일
+                        </div>
+                `;
+
+                data.attachments.forEach(att => {
+                    html += `
+                        <div class="attachment-item">
+                            <div class="attachment-icon">📄</div>
+                            <div class="attachment-info">
+                                <div class="attachment-name">${att.file_name}</div>
+                                <div class="attachment-meta">
+                                    ${formatFileSize(att.file_size)} · ${att.uploaded_by} · ${formatDateTime(att.created_at)}
+                                </div>
+                            </div>
+                            <a href="http://${hostname}:53001${att.file_path}" target="_blank" download="${att.file_name}">
+                                <button class="download-btn">다운로드</button>
+                            </a>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            }
+
+            // 상태 변경 히스토리
+            if (data.history && data.history.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>📊</span> 상태 변경 히스토리
+                        </div>
+                        <div class="timeline">
+                `;
+
+                data.history.forEach(h => {
+                    const fromStatus = h.from_status ? {
+                        'pending': '대기중',
+                        'assigned': '배정됨',
+                        'in_progress': '진행중',
+                        'needs_visit': '출동 요청',
+                        'completed': '완료',
+                        'confirmed': '확인됨'
+                    }[h.from_status] : '없음';
+
+                    const toStatus = {
+                        'pending': '대기중',
+                        'assigned': '배정됨',
+                        'in_progress': '진행중',
+                        'needs_visit': '출동 요청',
+                        'completed': '완료',
+                        'confirmed': '확인됨'
+                    }[h.to_status];
+
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-time">${formatDateTime(h.created_at)}</div>
+                            <div class="timeline-content">
+                                ${h.from_status ? `${fromStatus} →` : ''} <strong>${toStatus}</strong>
+                            </div>
+                            <div class="timeline-detail">
+                                변경자: ${h.changed_by}
+                                ${h.note ? `<br>메모: ${h.note}` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+    </script>
+</body>
+</html>

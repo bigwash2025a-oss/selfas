@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 AS 기사 호출</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 600px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .success-message h2 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .success-message p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .chat-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .chat-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 AS 기사 호출</h1>
+            <p>문제를 해결하지 못하셨나요? 기사님을 호출해 드리겠습니다.</p>
+        </div>
+
+        <!-- AS 요청 폼 -->
+        <div id="requestForm" class="form-card">
+            <!-- 진단 정보 표시 -->
+            <div class="info-box">
+                <h3>📋 진단 정보</h3>
+                <p><strong>베이 번호:</strong> <span id="bayInfo">-</span></p>
+                <p><strong>장비:</strong> <span id="equipmentInfo">-</span></p>
+                <p><strong>문제:</strong> <span id="problemInfo">-</span></p>
+            </div>
+
+            <!-- 고객 정보 입력 -->
+            <div class="form-group">
+                <label>이름 <span class="required">*</span></label>
+                <input type="text" id="customerName" placeholder="성함을 입력해주세요" required>
+            </div>
+
+            <div class="form-group">
+                <label>전화번호 <span class="required">*</span></label>
+                <input type="tel" id="customerPhone" placeholder="010-1234-5678" required>
+            </div>
+
+            <div class="form-group">
+                <label>추가 설명</label>
+                <textarea id="additionalInfo" placeholder="기사님께 전달할 추가 정보가 있다면 입력해주세요 (선택사항)"></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitRequest()">
+                🚨 기사님 호출하기
+            </button>
+
+            <button class="btn btn-secondary" onclick="history.back()">
+                ← 이전으로
+            </button>
+        </div>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading form-card">
+            <div class="spinner"></div>
+            <p>기사님을 호출하고 있습니다...</p>
+        </div>
+
+        <!-- 성공 메시지 -->
+        <div id="successMessage" class="success-message">
+            <div class="success-icon">✅</div>
+            <h2>기사님이 배정되었습니다!</h2>
+            <p>곧 기사님께서 연락드릴 예정입니다.</p>
+            <p>채팅방에서 실시간으로 소통하실 수 있습니다.</p>
+            <p><strong>평균 응답 시간: 3분 이내</strong></p>
+            <a href="#" id="chatLink" class="chat-btn">
+                💬 기사님과 채팅하기
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 자동으로 서버 주소 감지 (모바일/PC 모두 지원)
+        const hostname = window.location.hostname || 'localhost';
+        const API_URL = `http://${hostname}:53001/api`;
+
+        // URL 파라미터에서 진단 정보 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const bayNumber = urlParams.get('bay') || '미확인';
+        const equipment = urlParams.get('equipment') || '미확인';
+        const problem = urlParams.get('problem') || '미확인';
+        const diagnosisResult = urlParams.get('diagnosis') || null;
+
+        // 진단 정보 표시
+        document.getElementById('bayInfo').textContent = bayNumber;
+        document.getElementById('equipmentInfo').textContent = equipment;
+        document.getElementById('problemInfo').textContent = problem;
+
+        // 전화번호 자동 포맷팅
+        document.getElementById('customerPhone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 3) {
+                e.target.value = value;
+            } else if (value.length <= 7) {
+                e.target.value = value.slice(0, 3) + '-' + value.slice(3);
+            } else {
+                e.target.value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+            }
+        });
+
+        async function submitRequest() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const additionalInfo = document.getElementById('additionalInfo').value.trim();
+
+            // 유효성 검사
+            if (!customerName) {
+                alert('이름을 입력해주세요.');
+                return;
+            }
+
+            if (!customerPhone) {
+                alert('전화번호를 입력해주세요.');
+                return;
+            }
+
+            if (!/^010-\d{4}-\d{4}$/.test(customerPhone)) {
+                alert('올바른 전화번호 형식으로 입력해주세요. (010-1234-5678)');
+                return;
+            }
+
+            // 로딩 표시
+            document.getElementById('requestForm').style.display = 'none';
+            document.getElementById('loading').classList.add('active');
+
+            try {
+                // AS 요청 생성
+                const response = await fetch(`${API_URL}/as-requests`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bay_number: parseInt(bayNumber) || 0,
+                        equipment_type: equipment,
+                        problem_type: problem,
+                        diagnosis_result: diagnosisResult || additionalInfo,
+                        customer_name: customerName,
+                        customer_phone: customerPhone,
+                        priority: 'normal'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('AS 요청 생성 실패');
+                }
+
+                const data = await response.json();
+
+                // 성공 메시지 표시
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('successMessage').classList.add('active');
+
+                // 채팅방 링크 설정
+                document.getElementById('chatLink').href = `customer-chat.html?request_id=${data.id}&name=${encodeURIComponent(customerName)}`;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('AS 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('requestForm').style.display = 'block';
+            }
+        }
+    </script>
+
+    <!-- 🔧 채팅 위젯 로드 -->
+    <script>
+    fetch('chat-widget.html')
+        .then(response => response.text())
+        .then(html => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // 스타일 추가
+            const styles = tempDiv.querySelectorAll('style');
+            styles.forEach(style => document.head.appendChild(style.cloneNode(true)));
+
+            // 최상위 요소만 추가 (중첩된 자식까지 자동 포함)
+            Array.from(tempDiv.children).forEach(child => {
+                if (child.tagName === 'BUTTON' || child.tagName === 'DIV') {
+                    document.body.appendChild(child.cloneNode(true));
+                }
+            });
+
+            // 스크립트 추가 (새로 생성해서 실행)
+            const scripts = tempDiv.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+            });
+
+            // 위젯 초기화
+            setTimeout(() => {
+                if (window.chatWidget) {
+                    window.chatWidget.init();
+                }
+            }, 200);
+        })
+        .catch(err => console.log('채팅 위젯 로드 실패:', err));
+    </script>
+</body>
+</html>

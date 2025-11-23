@@ -1,0 +1,474 @@
+<!-- 🔧 기사 채팅 위젯 - 모든 페이지에 포함 -->
+<style>
+    /* 채팅 플로팅 버튼 */
+    .chat-floating-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        z-index: 9999;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse-chat 2s infinite;
+    }
+
+    .chat-floating-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .chat-floating-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* 채팅 배지 (새 메시지) */
+    .chat-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #e74c3c;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        animation: bounce 0.5s infinite;
+    }
+
+    /* 펄스 애니메이션 */
+    @keyframes pulse-chat {
+        0%, 100% {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        50% {
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.7), 0 0 0 15px rgba(102, 126, 234, 0.1);
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+
+    /* 미니 채팅 윈도우 */
+    .chat-mini-window {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        z-index: 9998;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+    }
+
+    .chat-mini-window.active {
+        display: flex;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .chat-mini-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-mini-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .chat-mini-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+
+    .chat-mini-close:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+    .chat-mini-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f5f5f5;
+    }
+
+    .chat-mini-options {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .chat-option-btn {
+        background: white;
+        border: 2px solid #667eea;
+        padding: 15px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 1rem;
+    }
+
+    .chat-option-btn:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .chat-option-icon {
+        font-size: 1.8rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+    }
+
+    .chat-option-btn:hover .chat-option-icon {
+        background: rgba(255,255,255,0.2);
+    }
+
+    .chat-option-content {
+        flex: 1;
+    }
+
+    .chat-option-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .chat-option-desc {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .chat-option-btn:hover .chat-option-desc {
+        color: rgba(255,255,255,0.9);
+    }
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+        .chat-mini-window {
+            width: calc(100vw - 20px);
+            height: calc(100vh - 120px);
+            right: 10px;
+            bottom: 80px;
+        }
+
+        .chat-floating-btn {
+            width: 56px;
+            height: 56px;
+            font-size: 1.6rem;
+            bottom: 15px;
+            right: 15px;
+        }
+    }
+</style>
+
+<!-- 채팅 플로팅 버튼 -->
+<button class="chat-floating-btn" id="chatFloatingBtn" title="기사님과 채팅">
+    🔧
+    <span class="chat-badge" id="chatBadge" style="display: none;">1</span>
+</button>
+
+<!-- 미니 채팅 윈도우 -->
+<div class="chat-mini-window" id="chatMiniWindow">
+    <div class="chat-mini-header">
+        <h3>🔧 기사 지원</h3>
+        <button class="chat-mini-close" id="chatMiniClose">×</button>
+    </div>
+    <div class="chat-mini-body">
+        <div class="chat-mini-options">
+            <!-- 기사와 채팅 -->
+            <button class="chat-option-btn" id="myChatRoomBtn" onclick="chatWidget.goToMyChat()" style="display: none;">
+                <div class="chat-option-icon">💬</div>
+                <div class="chat-option-content">
+                    <div class="chat-option-title">기사와 채팅</div>
+                    <div class="chat-option-desc">진행 중인 채팅 계속하기</div>
+                </div>
+            </button>
+
+            <!-- AI 진단 -->
+            <button class="chat-option-btn" onclick="chatWidget.goToWizard()">
+                <div class="chat-option-icon">🤖</div>
+                <div class="chat-option-content">
+                    <div class="chat-option-title">AI 자가진단</div>
+                    <div class="chat-option-desc">문제를 스스로 진단해보세요</div>
+                </div>
+            </button>
+
+            <!-- AS 기사 호출 -->
+            <button class="chat-option-btn" onclick="chatWidget.callTechnician()">
+                <div class="chat-option-icon">🚨</div>
+                <div class="chat-option-content">
+                    <div class="chat-option-title">AS 기사 호출</div>
+                    <div class="chat-option-desc">기사님과 실시간 채팅</div>
+                </div>
+            </button>
+
+            <!-- 전화 상담 -->
+            <button class="chat-option-btn" onclick="chatWidget.callPhone()">
+                <div class="chat-option-icon">📞</div>
+                <div class="chat-option-content">
+                    <div class="chat-option-title">전화 상담</div>
+                    <div class="chat-option-desc">010-3004-8047</div>
+                </div>
+            </button>
+
+            <!-- 긴급 출동 -->
+            <button class="chat-option-btn" onclick="chatWidget.emergencyVisit()">
+                <div class="chat-option-icon">🚗</div>
+                <div class="chat-option-content">
+                    <div class="chat-option-title">긴급 출동 요청</div>
+                    <div class="chat-option-desc">현장 방문 서비스</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- 운영 시간 안내 -->
+        <div style="margin-top: 30px; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 10px; font-size: 0.9rem; color: #666;">
+            <div style="font-weight: bold; margin-bottom: 5px;">⏰ 운영 시간</div>
+            <div>평일: 09:00 - 18:00</div>
+            <div>주말: 10:00 - 17:00</div>
+            <div style="margin-top: 10px; font-size: 0.85rem; color: #999;">
+                평균 응답 시간: 3분 이내
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 자동으로 서버 주소 감지 (모바일/PC 모두 지원)
+const hostname = window.location.hostname || 'localhost';
+
+// 채팅 위젯 핸들러
+const chatWidget = {
+    // 플로팅 버튼 클릭
+    init() {
+        const floatingBtn = document.getElementById('chatFloatingBtn');
+        const miniWindow = document.getElementById('chatMiniWindow');
+        const closeBtn = document.getElementById('chatMiniClose');
+
+        if (!floatingBtn || !miniWindow || !closeBtn) {
+            console.log('채팅 위젯 요소를 찾을 수 없습니다. 잠시 후 다시 시도합니다.');
+            setTimeout(() => this.init(), 100);
+            return;
+        }
+
+        floatingBtn.addEventListener('click', () => {
+            miniWindow.classList.toggle('active');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            miniWindow.classList.remove('active');
+        });
+
+        // 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            if (!floatingBtn.contains(e.target) &&
+                !miniWindow.contains(e.target) &&
+                miniWindow.classList.contains('active')) {
+                miniWindow.classList.remove('active');
+            }
+        });
+
+        // 현재 페이지가 채팅방이면 배지 표시
+        this.checkActiveChatRoom();
+
+        console.log('✅ 채팅 위젯 초기화 완료');
+    },
+
+    // 내 채팅방으로 이동
+    goToMyChat() {
+        const activeRequestId = localStorage.getItem('activeRequestId');
+        const customerName = localStorage.getItem('customerName') || '고객';
+
+        if (activeRequestId) {
+            window.location.href = `customer-chat.html?request_id=${activeRequestId}&name=${encodeURIComponent(customerName)}`;
+        } else {
+            alert('진행 중인 채팅이 없습니다.\nAS 기사를 호출해주세요.');
+        }
+    },
+
+    // AI 진단으로 이동
+    goToWizard() {
+        window.location.href = 'wizard.html';
+    },
+
+    // AS 기사 호출 - 바로 채팅 시작
+    async callTechnician() {
+        // 간단한 정보만 받기
+        const bay = prompt('몇 번 베이에서 이용 중이신가요?', '3');
+        if (!bay) return;
+
+        const customerName = prompt('성함을 입력해주세요', '');
+        if (!customerName) return;
+
+        const customerPhone = prompt('전화번호를 입력해주세요 (예: 010-1234-5678)', '');
+        if (!customerPhone) return;
+
+        // AS 요청 생성
+        try {
+            const response = await fetch(`http://${hostname}:53001/api/as-requests`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bay_number: parseInt(bay),
+                    equipment_type: '미확인',
+                    problem_type: '기사 상담 필요',
+                    customer_name: customerName,
+                    customer_phone: customerPhone,
+                    diagnosis_result: '고객이 직접 채팅 요청'
+                })
+            });
+
+            const data = await response.json();
+
+            // localStorage에 저장
+            localStorage.setItem('activeRequestId', data.id);
+            localStorage.setItem('customerName', customerName);
+
+            // 바로 채팅방으로 이동
+            window.location.href = `customer-chat.html?request_id=${data.id}&name=${encodeURIComponent(customerName)}`;
+
+        } catch (error) {
+            console.error('AS 요청 실패:', error);
+            alert('AS 요청 중 오류가 발생했습니다.\n다시 시도해주세요.');
+        }
+    },
+
+    // 전화 상담
+    callPhone() {
+        if (confirm('기사님과 직접 통화하시겠습니까?\n\n010-3004-8047로 연결됩니다.')) {
+            window.location.href = 'tel:010-3004-8047';
+        }
+    },
+
+    // 긴급 출동
+    emergencyVisit() {
+        if (confirm('긴급 출동 서비스를 요청하시겠습니까?\n\n기사님이 현장으로 방문합니다.\n추가 비용이 발생할 수 있습니다.')) {
+            const bay = prompt('몇 번 베이에서 이용 중이신가요?', '3');
+            if (bay) {
+                // AS 요청 생성 후 바로 출동 상태로
+                window.location.href = `customer-as-request.html?bay=${bay}&equipment=긴급&problem=출동요청&emergency=true`;
+            }
+        }
+    },
+
+    // 활성 채팅방 확인
+    checkActiveChatRoom() {
+        const badge = document.getElementById('chatBadge');
+        const myChatBtn = document.getElementById('myChatRoomBtn');
+        const activeRequestId = localStorage.getItem('activeRequestId');
+
+        if (activeRequestId && window.location.pathname !== '/customer-chat.html') {
+            // 배지 표시
+            if (badge) {
+                badge.style.display = 'flex';
+                badge.textContent = '!';
+                badge.title = '진행 중인 채팅이 있습니다';
+            }
+
+            // "내 채팅방" 버튼 표시
+            if (myChatBtn) {
+                myChatBtn.style.display = 'flex';
+            }
+
+            // 플로팅 버튼 Ctrl+클릭 시 채팅방 바로 이동
+            const floatingBtn = document.getElementById('chatFloatingBtn');
+            if (floatingBtn) {
+                floatingBtn.addEventListener('click', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        const customerName = localStorage.getItem('customerName') || '고객';
+                        window.location.href = `customer-chat.html?request_id=${activeRequestId}&name=${encodeURIComponent(customerName)}`;
+                    }
+                });
+            }
+        }
+    },
+
+    // 새 메시지 알림 (WebSocket에서 호출)
+    showNewMessageBadge(count) {
+        const badge = document.getElementById('chatBadge');
+        badge.style.display = 'flex';
+        badge.textContent = count;
+
+        // 알림음 재생 (선택사항)
+        this.playNotificationSound();
+    },
+
+    // 배지 숨기기
+    hideBadge() {
+        document.getElementById('chatBadge').style.display = 'none';
+    },
+
+    // 알림음 재생
+    playNotificationSound() {
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA0PVqzn8bJiHQc5ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoODlWq5vKxYhwHOI7v89GFNwYgb8Lv5pxKDg5VqubysWIcBziO7/PRhTcGIG/C7+acSg4OVarm8rFiHAc4ju/z0YU3BiBvwu/mnEoO');
+            audio.volume = 0.3;
+            audio.play();
+        } catch (e) {
+            console.log('알림음 재생 실패:', e);
+        }
+    }
+};
+
+// 즉시 초기화 (동적 로드를 위해 setTimeout 사용)
+setTimeout(() => {
+    if (typeof chatWidget !== 'undefined') {
+        chatWidget.init();
+    }
+}, 100);
+</script>
